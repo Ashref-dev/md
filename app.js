@@ -402,18 +402,6 @@ class MarkdownToPDF {
 -   🎨 **Catppuccin Theme:** Light (Latte) and Dark (Mocha) modes are preserved.
 -   ↔️ **Resizable Panels:** Adjust the editor and preview panes.
 -   🧘 **Focus Mode:** Hide the preview for distraction-free writing.
-
-## Mermaid Diagram
-
-\`\`\`mermaid
-graph TD
-    A[Start] --> B{Is the UI clean?};
-    B -->|Yes| C[Generate PDF];
-    B -->|No| D[Refine CSS!];
-    D --> B;
-    C --> E[Done!];
-\`\`\`
-
 `;
         const mdInput = document.getElementById('md-input');
         if (!localStorage.getItem('markdown-content')) {
