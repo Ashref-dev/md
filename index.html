@@ -1,47 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Markdown to PDF</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.4.0/github-markdown-light.min.css">
-    <link rel="stylesheet" href="styles.css">
-    
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.4.0/github-markdown-light.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
+    />
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.2/markdown-it.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div class="app-container">
-        <div class="main-content">
-            <div class="menu-container" id="menu-container">
-                <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle Menu">
-                    <span class="line line1"></span>
-                    <span class="line line2"></span>
-                    <span class="line line3"></span>
-                </button>
-                <nav class="nav-menu" id="nav-menu">
-                    <button id="generate-btn">
-                        <span class="btn-text">Generate PDF</span>
-                        <span class="btn-loading" style="display: none;">Generating...</span>
-                    </button>
-                    <button id="focus-mode-btn">Toggle Focus</button>
-                    <button id="theme-switcher-btn">Switch Theme</button>
-                </nav>
-            </div>
-
-            <div id="editor-panel" class="editor-section">
-                <textarea id="md-input" placeholder="Paste your Markdown here..." aria-label="Markdown input area"></textarea>
-            </div>
-            <div class="resizer" id="resizer"></div>
-            <div id="preview-panel" class="preview-section">
-                <div id="preview" class="markdown-body"></div>
-            </div>
+      <header class="workspace-header">
+        <div class="workspace-title">
+          <h1>Markdown Workspace</h1>
+          <p>
+            Create, preview, and export beautifully formatted PDFs without
+            leaving the browser.
+          </p>
         </div>
+        <div class="workspace-actions">
+          <button
+            id="focus-mode-btn"
+            class="action-btn"
+            title="Toggle Focus Mode"
+          >
+            <i class="ph-fill ph-eye"></i>
+          </button>
+          <button
+            id="theme-switcher-btn"
+            class="action-btn"
+            title="Switch Theme"
+          >
+            <i class="ph-fill ph-moon"></i>
+          </button>
+          <button id="generate-btn" class="action-btn" title="Generate PDF">
+            <i class="ph-fill ph-file-pdf"></i>
+            <span class="btn-text">Export</span>
+            <span class="btn-loading" style="display: none">
+              <div class="loader-container">
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+              </div>
+            </span>
+          </button>
+        </div>
+      </header>
+      <div class="main-content">
+        <div id="editor-panel" class="editor-section">
+          <textarea
+            id="md-input"
+            placeholder="Paste your Markdown here..."
+            aria-label="Markdown input area"
+          ></textarea>
+        </div>
+        <div class="resizer" id="resizer"></div>
+        <div id="preview-panel" class="preview-section">
+          <div id="preview" class="markdown-body"></div>
+        </div>
+      </div>
     </div>
-    
+
     <script src="app.js"></script>
-</body>
+  </body>
 </html>
