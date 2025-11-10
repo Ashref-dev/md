@@ -3,91 +3,224 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Markdown to PDF</title>
-
+  <title>md.ashref.tn — Markdown to PDF</title>
+  <meta name="description" content="Convert Markdown to clean, print-ready PDFs locally in your browser. Fast, private, and minimal." />
+  <!-- Open Graph -->
+  <meta property="og:title" content="md.ashref.tn — Markdown to PDF" />
+  <meta property="og:description" content="Convert Markdown to clean, print-ready PDFs locally in your browser. Fast, private, and minimal." />
+  <meta property="og:image" content="/og.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="/og.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap"
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.4.0/github-markdown-light.min.css"
     />
-    <link rel="stylesheet" href="styles.css" />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
-    />
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.2/markdown-it.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <link rel="stylesheet" href="hero.css" />
   </head>
   <body>
-    <div class="app-container">
-      <header class="workspace-header">
-        <div class="workspace-title">
-          <h1>Markdown Workspace</h1>
-          <p>
-            Create, preview, and export beautifully formatted PDFs without
-            leaving the browser.
-          </p>
+    <!-- Header -->
+    <header class="header" id="header">
+      <nav class="nav">
+        <div class="nav-container">
+          <div class="nav-row">
+            <!-- Logo -->
+            <a href="/" class="logo" aria-label="md.ashref.tn Home">
+              <span class="logo-text">md.ashref.tn</span>
+            </a>
+
+            <!-- Desktop Nav Links (centered) --><!-- intentionally minimal for landing -->
+            <ul class="nav-links">
+              <li><a href="#why">Why</a></li>
+              <li><a href="#features">Features</a></li>
+            </ul>
+
+            <!-- Desktop Actions -->
+            <div class="nav-actions desktop-actions">
+              <a href="converter.html" class="btn btn-primary btn-sm"
+                >Open App</a
+              >
+            </div>
+          </div>
         </div>
-        <div class="workspace-actions">
-          <button
-            id="focus-mode-btn"
-            class="action-btn"
-            title="Toggle Focus Mode"
-          >
-            <i class="ph-fill ph-eye"></i>
-          </button>
-          <button
-            id="theme-switcher-btn"
-            class="action-btn"
-            title="Switch Theme"
-          >
-            <i class="ph-fill ph-moon"></i>
-          </button>
-          <button id="generate-btn" class="action-btn" title="Generate PDF">
-            <i class="ph-fill ph-file-pdf"></i>
-            <span class="btn-text">Export</span>
-            <span class="btn-loading" style="display: none">
-              <div class="loader-container">
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-                <div class="loader-line"></div>
-              </div>
-            </span>
-          </button>
+      </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="hero">
+      <div class="hero-container">
+        <a
+          class="pill-badge"
+          href="https://ashref.tn"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>Check out my other stuff</span>
+          <span class="pill-divider"></span>
+          <span class="pill-icon-wrapper">
+            <span class="pill-arrow">→</span>
+          </span>
+        </a>
+
+        <h1 class="hero-title">
+          Instant <img src="flower.webp" alt="" class="hero-flower" /> Markdown to PDF in seconds.
+        </h1>
+
+        <p class="hero-description">
+          md.ashref.tn converts your Markdown to clean, print-ready PDFs —
+          locally in your browser. Fast, private, and minimal. No uploads, no
+          tracking, just copy paste code and get your PDF file instantly
+        </p>
+
+        <div class="hero-actions">
+          <a href="converter.html" class="btn btn-primary">Open App</a>
         </div>
-      </header>
-      <div class="main-content">
-        <div id="editor-panel" class="editor-section">
-          <textarea
-            id="md-input"
-            placeholder="Paste your Markdown here..."
-            aria-label="Markdown input area"
-          ></textarea>
-        </div>
-        <div class="resizer" id="resizer"></div>
-        <div id="preview-panel" class="preview-section">
-          <div id="preview" class="markdown-body"></div>
+
+        <div class="hero-media">
+          <div class="media-gradient"></div>
+          <div class="media-frame">
+            <img
+              src="screen.jpeg"
+              alt="md.ashref.tn App Preview"
+              class="media-image"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </main>
 
-    <script src="app.js"></script>
+    <!-- Why Section -->
+    <section class="why-section" id="why">
+      <div class="why-container">
+        <h2 class="why-title">Simple. Fast. Private.</h2>
+        <p class="why-description">
+          md.ashref.tn does one thing perfectly: convert Markdown to beautiful
+          PDFs. No accounts, no uploads, no complexity. Just pure conversion in
+          your browser.
+        </p>
+        <div class="why-grid">
+          <div class="why-card">
+            <div class="card-number">01</div>
+            <h3 class="card-title">Instant</h3>
+            <p class="card-text">
+              Zero latency. Your documents convert in milliseconds, not seconds.
+            </p>
+          </div>
+          <div class="why-card">
+            <div class="card-number">02</div>
+            <h3 class="card-title">Local</h3>
+            <p class="card-text">
+              Everything stays on your device. No servers, no tracking, no data
+              collection.
+            </p>
+          </div>
+          <div class="why-card">
+            <div class="card-number">03</div>
+            <h3 class="card-title">Perfect</h3>
+            <p class="card-text">
+              GitHub-style formatting. Tables, code blocks, diagrams — all
+              rendered flawlessly.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Syntax Section -->
+    <section class="syntax-section" id="features">
+      <div class="syntax-container">
+        <div class="syntax-header">
+          <h2 class="syntax-title">Every element renders perfectly.</h2>
+          <p class="syntax-description">
+            Complete GitHub-flavored Markdown with tables, code blocks, and full
+            Mermaid diagram support. Flowcharts, sequences, gantt charts, and
+            more — all export cleanly.
+          </p>
+          <div class="syntax-tags">
+            <span class="syntax-tag">GitHub Markdown</span>
+            <span class="syntax-tag">All Mermaid Diagrams</span>
+            <span class="syntax-tag">Tables & Lists</span>
+          </div>
+        </div>
+        <div class="syntax-grid">
+          <div class="syntax-preview">
+            <div class="syntax-preview-bar">
+              <div class="syntax-preview-dots">
+                <span class="syntax-preview-dot"></span>
+                <span class="syntax-preview-dot"></span>
+                <span class="syntax-preview-dot"></span>
+              </div>
+              <span class="syntax-preview-title">example.md</span>
+            </div>
+            <pre
+              class="syntax-code"
+            ><code><span class="syntax-comment">// Flowcharts, sequences, gantt charts</span>&#96;&#96;&#96;mermaid
+graph LR
+  A[Markdown] --> B[PDF]
+  B --> C[Done]
+&#96;&#96;&#96;
+
+<span class="syntax-comment">// Code blocks preserve formatting</span>&#96;&#96;&#96;typescript
+<span class="syntax-keyword">const</span> convert = () => {
+  <span class="syntax-keyword">return</span> <span class="syntax-string">'Perfect output'</span>;
+};
+&#96;&#96;&#96;
+</code></pre>
+          </div>
+          <div class="syntax-stack">
+            <article class="syntax-card">
+              <span class="syntax-card-chip">Mermaid</span>
+              <h3 class="syntax-card-title">All diagram types</h3>
+              <p class="syntax-card-text">
+                Flowcharts, sequence diagrams, gantt charts, state diagrams, pie
+                charts, and more convert to high-resolution images.
+              </p>
+            </article>
+            <article class="syntax-card">
+              <span class="syntax-card-chip">Markdown</span>
+              <h3 class="syntax-card-title">Extended syntax</h3>
+              <p class="syntax-card-text">
+                Tables, task lists, footnotes, strikethrough, and inline HTML
+                all work seamlessly with consistent GitHub styling.
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-container">
+        <div class="footer-content">
+          <p>&copy; 2025 md.ashref.tn. All rights reserved.</p>
+          <div class="footer-links">
+            <a href="privacy.html">Privacy</a>
+          </div>
+        </div>
+        <div class="footer-credits">
+          <p>
+            Made by
+            <a href="https://ashref.tn" target="_blank" rel="noopener"
+              >ashref.tn</a
+            >
+            &
+            <a href="https://www.rayenft.dev/" target="_blank" rel="noopener"
+              >rayenft.dev</a
+            >
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Header scroll effect
+      const header = document.getElementById('header');
+      window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 50);
+      });
+    </script>
   </body>
 </html>

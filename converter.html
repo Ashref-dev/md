@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>md.ashref.tn — Markdown to PDF</title>
+  <meta name="description" content="Minimal Markdown → PDF. Fast, local, and beautifully formatted. Export tables, code blocks and Mermaid diagrams to PDF without uploads." />
+  <!-- Open Graph -->
+  <meta property="og:title" content="md.ashref.tn — Markdown to PDF" />
+  <meta property="og:description" content="Minimal Markdown → PDF. Fast, local, and beautifully formatted. Export tables, code blocks and Mermaid diagrams to PDF without uploads." />
+  <meta property="og:image" content="/og.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="/og.jpg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.4.0/github-markdown-light.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.2/markdown-it.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="workspace-header">
+        <div
+          class="workspace-title"
+          style="display: flex; align-items: center; gap: 12px"
+        >
+          <a href="index.html" title="Back to Home">
+            <img
+              src="flower.webp"
+              alt="md.ashref.tn"
+              style="
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                object-fit: cover;
+                flex-shrink: 0;
+              "
+            />
+          </a>
+          <div>
+            <h1>md.ashref.tn</h1>
+            <p>
+              Minimal Markdown → PDF. Fast, local, and beautifully formatted.
+            </p>
+          </div>
+        </div>
+        <div class="workspace-actions">
+          <button
+            id="focus-mode-btn"
+            class="action-btn"
+            title="Toggle Focus Mode"
+          >
+            <i class="ph-fill ph-eye"></i>
+          </button>
+          <button
+            id="theme-switcher-btn"
+            class="action-btn"
+            title="Switch Theme"
+          >
+            <i class="ph-fill ph-moon"></i>
+          </button>
+          <button id="generate-btn" class="action-btn" title="Export to PDF">
+            <span class="btn-text">
+              <i class="ph-fill ph-file-pdf"></i>
+              <span>Export PDF</span>
+            </span>
+            <span class="btn-loading">
+              <div class="loader-container">
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+                <div class="loader-line"></div>
+              </div>
+            </span>
+          </button>
+        </div>
+      </header>
+      <div class="main-content">
+        <div id="editor-panel" class="editor-section">
+          <textarea
+            id="md-input"
+            placeholder="Paste your Markdown here..."
+            aria-label="Markdown input area"
+          ></textarea>
+        </div>
+        <div class="resizer" id="resizer"></div>
+        <div id="preview-panel" class="preview-section">
+          <div id="preview" class="markdown-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

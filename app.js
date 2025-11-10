@@ -87,15 +87,46 @@ class MarkdownToPDF {
   }
 
   switchTheme() {
-    const isDark = document.body.classList.toggle('dark-theme');
+    const body = document.body;
+    const isDark = body.classList.toggle('dark-theme');
+    const themeSwitcherBtn = document.getElementById('theme-switcher-btn');
+    const icon = themeSwitcherBtn.querySelector('i');
+
+    // Update icon
+    if (isDark) {
+      icon.className = 'ph-fill ph-sun';
+    } else {
+      icon.className = 'ph-fill ph-moon';
+    }
+
+    // Save preference
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+    // NOTE: We keep GitHub markdown CSS on light mode always for consistent preview/export
+    // The preview panel styling in styles.css keeps it white regardless of theme
   }
 
   loadTheme() {
-    const theme = localStorage.getItem('theme');
+    const theme = localStorage.getItem('theme') || 'dark'; // Default to dark
+    const body = document.body;
+    const themeSwitcherBtn = document.getElementById('theme-switcher-btn');
+
     if (theme === 'dark') {
-      document.body.classList.add('dark-theme');
+      body.classList.add('dark-theme');
+      if (themeSwitcherBtn) {
+        const icon = themeSwitcherBtn.querySelector('i');
+        if (icon) icon.className = 'ph-fill ph-sun';
+      }
+    } else {
+      body.classList.remove('dark-theme');
+      if (themeSwitcherBtn) {
+        const icon = themeSwitcherBtn.querySelector('i');
+        if (icon) icon.className = 'ph-fill ph-moon';
+      }
     }
+    
+    // Preview always uses light GitHub markdown CSS for consistency
+    // This ensures preview matches PDF export exactly
   }
 
   async renderMarkdown() {
@@ -242,12 +273,95 @@ class MarkdownToPDF {
     // Basic styling for PDF - remove all decorative elements
     clone.style.padding = '20px';
     clone.style.backgroundColor = '#ffffff';
-    clone.style.color = '#000000';
+    clone.style.color = '#24292f';
     clone.style.fontSize = '14px';
     clone.style.lineHeight = '1.6';
     clone.style.border = 'none';
     clone.style.borderRadius = '0';
     clone.style.boxShadow = 'none';
+
+    // Force light mode colors for all elements
+    clone.querySelectorAll('*').forEach((el) => {
+      // Remove any dark theme classes or inline styles that might interfere
+      el.style.color = '';
+      el.style.backgroundColor = '';
+      el.style.borderColor = '';
+    });
+
+    // Fix tables - ensure light borders and backgrounds
+    clone.querySelectorAll('table').forEach((table) => {
+      table.style.borderCollapse = 'collapse';
+      table.style.backgroundColor = '#ffffff';
+      table.style.color = '#24292f';
+      table.style.border = '1px solid #d0d7de';
+    });
+
+    clone.querySelectorAll('th, td').forEach((cell) => {
+      cell.style.border = '1px solid #d0d7de';
+      cell.style.padding = '8px 13px';
+      cell.style.color = '#24292f';
+      cell.style.backgroundColor = '#ffffff';
+    });
+
+    clone.querySelectorAll('th').forEach((th) => {
+      th.style.backgroundColor = '#f6f8fa';
+      th.style.fontWeight = '600';
+    });
+
+    clone.querySelectorAll('tr:nth-child(2n)').forEach((row) => {
+      row.style.backgroundColor = '#f6f8fa';
+    });
+
+    // Fix horizontal rules
+    clone.querySelectorAll('hr').forEach((hr) => {
+      hr.style.backgroundColor = '#d0d7de';
+      hr.style.border = 'none';
+      hr.style.height = '1px';
+      hr.style.margin = '24px 0';
+    });
+
+    // Fix headings
+    clone.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
+      heading.style.color = '#24292f';
+      heading.style.borderBottom = heading.tagName === 'H1' || heading.tagName === 'H2' 
+        ? '1px solid #d0d7de' 
+        : 'none';
+    });
+
+    // Fix code blocks
+    clone.querySelectorAll('pre').forEach((pre) => {
+      pre.style.backgroundColor = '#f6f8fa';
+      pre.style.border = '1px solid #d0d7de';
+      pre.style.borderRadius = '6px';
+      pre.style.padding = '16px';
+    });
+
+    clone.querySelectorAll('code').forEach((code) => {
+      if (!code.parentElement || code.parentElement.tagName !== 'PRE') {
+        // Inline code
+        code.style.backgroundColor = '#f6f8fa';
+        code.style.color = '#24292f';
+        code.style.padding = '0.2em 0.4em';
+        code.style.borderRadius = '6px';
+      } else {
+        // Code in pre blocks
+        code.style.color = '#24292f';
+      }
+    });
+
+    // Fix blockquotes
+    clone.querySelectorAll('blockquote').forEach((bq) => {
+      bq.style.borderLeft = '4px solid #d0d7de';
+      bq.style.color = '#57606a';
+      bq.style.paddingLeft = '16px';
+      bq.style.marginLeft = '0';
+    });
+
+    // Fix links
+    clone.querySelectorAll('a').forEach((a) => {
+      a.style.color = '#0969da';
+      a.style.textDecoration = 'none';
+    });
 
     // Prevent headings from breaking across pages - aggressive approach
     const headings = clone.querySelectorAll('h1, h2, h3, h4, h5, h6');
