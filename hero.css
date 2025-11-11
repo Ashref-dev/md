@@ -57,7 +57,7 @@ a {
 }
 
 .header.scrolled .nav-container {
-  max-width: 960px;
+  max-width: 800px;
   background: rgba(10, 10, 10, 0.8);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
@@ -676,6 +676,19 @@ a {
   color: var(--text);
 }
 
+.footer-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem !important;
+  padding: 4px;
+  transition: var(--transition);
+}
+
+.footer-icon-link:hover {
+  color: var(--accent) !important;
+}
+
 .footer-credits {
   padding-top: 12px;
   border-top: 1px solid var(--border);
@@ -729,16 +742,130 @@ a {
 }
 
 @media (max-width: 767px) {
+  /* Header adjustments */
+  .header {
+    padding: 8px 12px;
+  }
+
+  .nav-container {
+    padding: 8px 16px;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+
+  .desktop-actions {
+    display: flex;
+  }
+
+  /* Hero section mobile */
+  .hero {
+    padding: 100px 20px 60px;
+  }
+
+  .hero-container {
+    gap: 24px;
+  }
+
+  .pill-badge {
+    font-size: 0.75rem;
+    padding: 4px 4px 4px 12px;
+    max-width: 100%;
+  }
+
+  .pill-badge span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 8vw, 2.75rem);
+    line-height: 1.2;
+  }
+
+  .hero-flower {
+    width: clamp(40px, 10vw, 50px);
+    height: clamp(40px, 10vw, 50px);
+    margin: 0 4px;
+  }
+
+  .hero-description {
+    font-size: 0.9375rem;
+    max-width: 100%;
+  }
+
+  .hero-media {
+    margin-top: 24px;
+  }
+
+  .media-frame {
+    padding: 12px;
+  }
+
+  /* Why section mobile */
+  .why-section {
+    padding: 80px 20px;
+  }
+
+  .why-title {
+    font-size: clamp(2rem, 8vw, 2.75rem);
+    margin-bottom: 20px;
+  }
+
+  .why-description {
+    font-size: 1rem;
+    margin-bottom: 60px;
+  }
+
+  .why-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .why-card {
+    padding: 36px 24px;
+  }
+
+  .card-number {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+  }
+
+  .card-text {
+    font-size: 0.875rem;
+  }
+
+  /* Syntax section mobile */
   .syntax-section {
     padding: 80px 20px;
   }
 
   .syntax-header {
     max-width: 100%;
+    gap: 16px;
   }
 
   .syntax-title {
     font-size: clamp(2rem, 8vw, 2.75rem);
+  }
+
+  .syntax-description {
+    font-size: 1rem;
+  }
+
+  .syntax-tags {
+    gap: 8px;
+  }
+
+  .syntax-tag {
+    font-size: 0.6875rem;
+    padding: 6px 12px;
   }
 
   .syntax-grid {
@@ -746,13 +873,79 @@ a {
     gap: 24px;
   }
 
+  .syntax-preview {
+    padding: 20px;
+  }
+
   .syntax-code {
     padding: 20px;
     font-size: 0.75rem;
   }
 
+  .syntax-stack {
+    gap: 20px;
+  }
+
   .syntax-card {
     padding: 28px;
+  }
+
+  .syntax-card-title {
+    font-size: 1.25rem;
+  }
+
+  .syntax-card-text {
+    font-size: 0.875rem;
+  }
+
+  /* Footer mobile */
+  .footer {
+    padding: 24px 20px;
+  }
+
+  .footer-content {
+    gap: 16px;
+  }
+
+  .footer-links {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .footer-credits {
+    padding-top: 16px;
+  }
+}
+
+@media (max-width: 374px) {
+  /* Extra small screens (iPhone SE, etc.) */
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-description {
+    font-size: 0.875rem;
+  }
+
+  .pill-badge span:first-child {
+    max-width: 180px;
+  }
+
+  .why-card {
+    padding: 28px 20px;
+  }
+
+  .syntax-preview {
+    padding: 16px;
+  }
+
+  .syntax-code {
+    padding: 16px;
+    font-size: 0.6875rem;
+  }
+
+  .syntax-card {
+    padding: 24px;
   }
 }
 
