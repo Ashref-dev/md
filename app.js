@@ -5,6 +5,17 @@ class MarkdownToPDF {
       linkify: true,
       typographer: true,
     });
+
+    // Add math support if plugins are available
+    const texmathPlugin = window.texmath || window.markdownitTexmath;
+    if (texmathPlugin && window.katex) {
+      this.md.use(texmathPlugin, {
+        engine: window.katex,
+        delims: 'dollars',
+        katexOptions: { throwOnError: false },
+      });
+    }
+
     this.debounceTimer = null;
     this.isResizing = false;
     this.mermaidCounter = 0;
@@ -282,6 +293,9 @@ class MarkdownToPDF {
 
     // Force light mode colors for all elements
     clone.querySelectorAll('*').forEach((el) => {
+      // Skip KaTeX elements to preserve their internal styling
+      if (el.closest('.katex')) return;
+
       // Remove any dark theme classes or inline styles that might interfere
       el.style.color = '';
       el.style.backgroundColor = '';
@@ -393,7 +407,7 @@ class MarkdownToPDF {
 
     // Prevent other elements from breaking
     clone
-      .querySelectorAll('p, blockquote, pre, ul, ol, table')
+      .querySelectorAll('p, blockquote, pre, ul, ol, table, .katex-display')
       .forEach((el) => {
         el.style.pageBreakInside = 'avoid';
         el.style.breakInside = 'avoid';
@@ -556,6 +570,14 @@ class MarkdownToPDF {
 -   🎨 **Catppuccin Theme:** Light (Latte) and Dark (Mocha) modes are preserved.
 -   ↔️ **Resizable Panels:** Adjust the editor and preview panes.
 -   🧘 **Focus Mode:** Hide the preview for distraction-free writing.
+-   ➗ **Math Support:** Render LaTeX formulas with KaTeX.
+
+## Math Example
+
+The quadratic formula:
+$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+
+Inline math: $E = mc^2$
 `;
     const mdInput = document.getElementById('md-input');
     if (!localStorage.getItem('markdown-content')) {
