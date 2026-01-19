@@ -415,10 +415,11 @@ class MarkdownToPDF {
   }
 
   async generatePDFWithWorkerAPI(element) {
+    const filename = this.getDynamicFilename();
     // Simple, reliable options that actually work
     const options = {
       margin: 15,
-      filename: 'markdown-export.pdf',
+      filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
         scale: 2,
@@ -435,6 +436,30 @@ class MarkdownToPDF {
 
     // Use the simple, working approach
     await html2pdf().set(options).from(element).save();
+  }
+
+  getDynamicFilename() {
+    const input = document.getElementById('md-input').value.trim();
+    if (!input) return 'markdown-export.pdf';
+
+    const lines = input.split('\n');
+    const firstLine = lines.find((line) => line.trim().length > 0);
+    if (!firstLine) return 'markdown-export.pdf';
+
+    let title = firstLine
+      .replace(/[#*`_~]/g, '')
+      .trim();
+
+    if (!title) return 'markdown-export.pdf';
+
+    const words = title.split(/\s+/);
+    const limitedWords = words.slice(0, 5);
+    const kebabName = limitedWords
+      .join('-')
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '');
+
+    return kebabName ? `${kebabName}.pdf` : 'markdown-export.pdf';
   }
 
   // Small helper to pause
