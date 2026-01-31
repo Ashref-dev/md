@@ -1,3 +1,117 @@
+// History Manager for storing and retrieving markdown documents
+class HistoryManager {
+  constructor(maxItems = 100) {
+    this.maxItems = maxItems;
+    this.storageKey = 'markdown-history';
+  }
+
+  getHistory() {
+    try {
+      const data = localStorage.getItem(this.storageKey);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveHistory(history) {
+    localStorage.setItem(this.storageKey, JSON.stringify(history));
+  }
+
+  addEntry(content) {
+    if (!content || !content.trim()) return;
+    
+    const history = this.getHistory();
+    const preview = this.generatePreview(content);
+    const title = this.extractTitle(content);
+    
+    // Check if identical to most recent entry
+    if (history.length > 0 && history[0].content === content) {
+      return;
+    }
+    
+    const entry = {
+      id: Date.now().toString(),
+      content,
+      preview,
+      title,
+      timestamp: new Date().toISOString()
+    };
+    
+    history.unshift(entry);
+    
+    // Keep only max items
+    if (history.length > this.maxItems) {
+      history.length = this.maxItems;
+    }
+    
+    this.saveHistory(history);
+    return entry;
+  }
+
+  generatePreview(content) {
+    const lines = content.split('\n');
+    const firstNonEmpty = lines.find(line => line.trim().length > 0);
+    if (!firstNonEmpty) return 'Empty document';
+    
+    const clean = firstNonEmpty
+      .replace(/[#*`_~]/g, '')
+      .trim()
+      .slice(0, 80);
+    
+    return clean.length < firstNonEmpty.length ? clean + '...' : clean;
+  }
+
+  extractTitle(content) {
+    const lines = content.split('\n');
+    const heading = lines.find(line => line.startsWith('#'));
+    if (heading) {
+      return heading.replace(/^#+\s*/, '').trim().slice(0, 50);
+    }
+    const firstLine = lines.find(line => line.trim().length > 0);
+    if (firstLine) {
+      return firstLine.replace(/[#*`_~]/g, '').trim().slice(0, 50);
+    }
+    return 'Untitled';
+  }
+
+  getEntry(id) {
+    const history = this.getHistory();
+    return history.find(entry => entry.id === id);
+  }
+
+  deleteEntry(id) {
+    const history = this.getHistory().filter(entry => entry.id !== id);
+    this.saveHistory(history);
+  }
+
+  clearHistory() {
+    localStorage.removeItem(this.storageKey);
+  }
+
+  formatDate(isoString) {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diff = now - date;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) {
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      if (hours === 0) {
+        const minutes = Math.floor(diff / (1000 * 60));
+        return minutes < 1 ? 'Just now' : `${minutes}m ago`;
+      }
+      return `${hours}h ago`;
+    } else if (days === 1) {
+      return 'Yesterday';
+    } else if (days < 7) {
+      return `${days} days ago`;
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  }
+}
+
 class MarkdownToPDF {
   constructor() {
     this.md = window.markdownit({
@@ -19,6 +133,8 @@ class MarkdownToPDF {
     this.debounceTimer = null;
     this.isResizing = false;
     this.mermaidCounter = 0;
+    this.historyManager = new HistoryManager(100);
+    this.historySaveTimer = null;
     this.init();
   }
 
@@ -35,12 +151,43 @@ class MarkdownToPDF {
     const generateBtn = document.getElementById('generate-btn');
     const focusModeBtn = document.getElementById('focus-mode-btn');
     const themeSwitcherBtn = document.getElementById('theme-switcher-btn');
+    const historyBtn = document.getElementById('history-btn');
     const resizer = document.getElementById('resizer');
 
     mdInput.addEventListener('input', () => {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => this.renderMarkdown(), 250);
       localStorage.setItem('markdown-content', mdInput.value);
+      
+      // Auto-save to history after 5 seconds of inactivity
+      clearTimeout(this.historySaveTimer);
+      this.historySaveTimer = setTimeout(() => {
+        if (mdInput.value.trim().length > 50) {
+          this.historyManager.addEntry(mdInput.value);
+        }
+      }, 5000);
+    });
+
+    historyBtn?.addEventListener('click', () => this.toggleHistoryPanel());
+
+    // History panel controls
+    const closeHistoryBtn = document.getElementById('close-history-btn');
+    const clearHistoryBtn = document.getElementById('clear-history-btn');
+    const historyOverlay = document.getElementById('history-overlay');
+
+    closeHistoryBtn?.addEventListener('click', () => this.closeHistoryPanel());
+    clearHistoryBtn?.addEventListener('click', () => this.clearAllHistory());
+    historyOverlay?.addEventListener('click', () => this.closeHistoryPanel());
+
+    // Keyboard shortcut: Ctrl+H to toggle history
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+        e.preventDefault();
+        this.toggleHistoryPanel();
+      }
+      if (e.key === 'Escape') {
+        this.closeHistoryPanel();
+      }
     });
 
     generateBtn.addEventListener('click', () => this.generatePDF());
@@ -229,6 +376,10 @@ class MarkdownToPDF {
         alert('Please add some markdown content before generating PDF.');
         return;
       }
+
+      // Save to history before generating PDF
+      const mdInput = document.getElementById('md-input');
+      this.historyManager.addEntry(mdInput.value);
 
       // Prepare content for PDF
       const preparedElement = await this.prepareContentForPDF(preview);
@@ -590,12 +741,12 @@ class MarkdownToPDF {
 
 ## Key Improvements
 
--   🔩 **Bulletproof Layout:** Editor and preview panes scroll independently. No more page scroll or overflow.
--   🍔 **Elegant Navigation:** A clean, collapsible hamburger menu in the top-left.
--   🎨 **Catppuccin Theme:** Light (Latte) and Dark (Mocha) modes are preserved.
--   ↔️ **Resizable Panels:** Adjust the editor and preview panes.
--   🧘 **Focus Mode:** Hide the preview for distraction-free writing.
--   ➗ **Math Support:** Render LaTeX formulas with KaTeX.
+-   **Bulletproof Layout:** Editor and preview panes scroll independently. No more page scroll or overflow.
+-   **History:** Access previously pasted Markdown content, even days later.
+-   **Catppuccin Theme:** Light (Latte) and Dark (Mocha) modes are preserved.
+-   **Resizable Panels:** Adjust the editor and preview panes.
+-   **Focus Mode:** Hide the preview for distraction-free writing.
+-   **Math Support:** Render LaTeX formulas with KaTeX.
 
 ## Math Example
 
@@ -610,6 +761,122 @@ Inline math: $E = mc^2$
     } else {
       mdInput.value = localStorage.getItem('markdown-content');
     }
+  }
+
+  toggleHistoryPanel() {
+    const panel = document.getElementById('history-panel');
+    const overlay = document.getElementById('history-overlay');
+    const isOpen = panel.classList.contains('open');
+    
+    if (isOpen) {
+      this.closeHistoryPanel();
+    } else {
+      this.openHistoryPanel();
+    }
+  }
+
+  openHistoryPanel() {
+    const panel = document.getElementById('history-panel');
+    const overlay = document.getElementById('history-overlay');
+    
+    this.renderHistoryList();
+    panel.classList.add('open');
+    overlay.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeHistoryPanel() {
+    const panel = document.getElementById('history-panel');
+    const overlay = document.getElementById('history-overlay');
+    
+    panel.classList.remove('open');
+    overlay.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+
+  renderHistoryList() {
+    const list = document.getElementById('history-list');
+    const history = this.historyManager.getHistory();
+    
+    if (history.length === 0) {
+      list.innerHTML = `
+        <div class="history-empty">
+          <i class="ph ph-clock-counter-clockwise"></i>
+          <p>No history yet</p>
+          <span>Your markdown documents will appear here</span>
+        </div>
+      `;
+      return;
+    }
+    
+    list.innerHTML = history.map(entry => `
+      <div class="history-item" data-id="${entry.id}">
+        <div class="history-item-content">
+          <div class="history-item-title">${this.escapeHtml(entry.title)}</div>
+          <div class="history-item-preview">${this.escapeHtml(entry.preview)}</div>
+          <div class="history-item-meta">
+            <span class="history-item-date">
+              <i class="ph ph-calendar"></i>
+              ${this.historyManager.formatDate(entry.timestamp)}
+            </span>
+          </div>
+        </div>
+        <div class="history-item-actions">
+          <button class="history-action-btn load" title="Load into editor" data-action="load">
+            <i class="ph ph-arrow-u-up-left"></i>
+          </button>
+          <button class="history-action-btn delete" title="Delete" data-action="delete">
+            <i class="ph ph-trash"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+    
+    // Bind item actions
+    list.querySelectorAll('.history-item').forEach(item => {
+      const id = item.dataset.id;
+      
+      item.querySelector('[data-action="load"]')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.loadHistoryEntry(id);
+      });
+      
+      item.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.deleteHistoryEntry(id);
+      });
+      
+      item.addEventListener('click', () => this.loadHistoryEntry(id));
+    });
+  }
+
+  loadHistoryEntry(id) {
+    const entry = this.historyManager.getEntry(id);
+    if (!entry) return;
+    
+    const mdInput = document.getElementById('md-input');
+    mdInput.value = entry.content;
+    localStorage.setItem('markdown-content', entry.content);
+    this.renderMarkdown();
+    this.closeHistoryPanel();
+  }
+
+  deleteHistoryEntry(id) {
+    this.historyManager.deleteEntry(id);
+    this.renderHistoryList();
+  }
+
+  clearAllHistory() {
+    if (confirm('Are you sure you want to clear all history? This cannot be undone.')) {
+      this.historyManager.clearHistory();
+      this.renderHistoryList();
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 }
 
