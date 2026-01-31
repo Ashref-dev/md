@@ -112,6 +112,102 @@ class HistoryManager {
   }
 }
 
+// Toast Notification System
+class Toast {
+  constructor() {
+    this.container = document.getElementById('toast-container');
+    this.toasts = [];
+  }
+
+  show(message, type = 'info', duration = 4000) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const iconMap = {
+      success: 'ph-check-circle',
+      error: 'ph-warning-circle',
+      info: 'ph-info'
+    };
+    
+    toast.innerHTML = `
+      <i class="ph-fill ${iconMap[type]}"></i>
+      <span>${this.escapeHtml(message)}</span>
+      <button class="toast-close" aria-label="Close notification">
+        <i class="ph ph-x"></i>
+      </button>
+    `;
+    
+    this.container.appendChild(toast);
+    this.toasts.push(toast);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+    
+    // Auto dismiss
+    const timeoutId = setTimeout(() => {
+      this.dismiss(toast);
+    }, duration);
+    
+    // Close button
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', () => {
+      clearTimeout(timeoutId);
+      this.dismiss(toast);
+    });
+    
+    // Pause on hover
+    toast.addEventListener('mouseenter', () => {
+      clearTimeout(timeoutId);
+    });
+    
+    toast.addEventListener('mouseleave', () => {
+      const newTimeoutId = setTimeout(() => {
+        this.dismiss(toast);
+      }, duration);
+      // Store new timeout on toast element for cleanup
+      toast.dataset.timeoutId = newTimeoutId;
+    });
+    
+    // Limit max toasts
+    if (this.toasts.length > 3) {
+      this.dismiss(this.toasts[0]);
+    }
+    
+    return toast;
+  }
+
+  dismiss(toast) {
+    toast.classList.remove('show');
+    
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+      this.toasts = this.toasts.filter(t => t !== toast);
+    }, 300);
+  }
+
+  success(message, duration) {
+    return this.show(message, 'success', duration);
+  }
+
+  error(message, duration) {
+    return this.show(message, 'error', duration);
+  }
+
+  info(message, duration) {
+    return this.show(message, 'info', duration);
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+}
+
 class MarkdownToPDF {
   constructor() {
     this.md = window.markdownit({
@@ -135,6 +231,10 @@ class MarkdownToPDF {
     this.mermaidCounter = 0;
     this.historyManager = new HistoryManager(100);
     this.historySaveTimer = null;
+    this.toast = new Toast();
+    this.currentPanel = 'editor'; // For mobile: 'editor' or 'preview'
+    this.scrollSyncEnabled = localStorage.getItem('scroll-sync-enabled') !== 'false';
+    this.compactMode = localStorage.getItem('pdf-compact-mode') === 'true';
     this.init();
   }
 
@@ -158,6 +258,9 @@ class MarkdownToPDF {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => this.renderMarkdown(), 250);
       localStorage.setItem('markdown-content', mdInput.value);
+      
+      // Update document statistics
+      this.updateDocumentStats(mdInput.value);
       
       // Auto-save to history after 5 seconds of inactivity
       clearTimeout(this.historySaveTimer);
@@ -193,6 +296,19 @@ class MarkdownToPDF {
     generateBtn.addEventListener('click', () => this.generatePDF());
     focusModeBtn.addEventListener('click', () => this.toggleFocusMode());
     themeSwitcherBtn.addEventListener('click', () => this.switchTheme());
+    
+    // Compact mode toggle
+    const compactModeBtn = document.getElementById('compact-mode-btn');
+    compactModeBtn?.addEventListener('click', () => this.toggleCompactMode());
+    this.updateCompactModeUI();
+    
+    // Scroll sync toggle
+    const scrollSyncBtn = document.getElementById('scroll-sync-btn');
+    scrollSyncBtn?.addEventListener('click', () => this.toggleScrollSync());
+    this.updateScrollSyncUI();
+    
+    // Initialize scroll sync
+    this.initScrollSync();
 
     resizer.addEventListener('mousedown', (e) => {
       e.preventDefault();
@@ -228,10 +344,292 @@ class MarkdownToPDF {
         reader.onload = (event) => {
           mdInput.value = event.target.result;
           this.renderMarkdown();
+          this.toast.success(`File loaded: ${file.name}`);
         };
         reader.readAsText(file);
+      } else if (file) {
+        this.toast.error('Please drop a text or markdown file');
       }
     });
+
+    // Mobile touch gestures for panel switching
+    this.initMobileGestures();
+  }
+
+  initMobileGestures() {
+    // Only enable on touch devices
+    if (!window.matchMedia('(pointer: coarse)').matches) return;
+
+    const mainContent = document.querySelector('.main-content');
+    const panelIndicator = document.getElementById('panel-indicator');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    
+    // Show panel indicator and menu button on mobile
+    if (panelIndicator) {
+      panelIndicator.style.display = 'flex';
+    }
+    if (mobileMenuBtn) {
+      mobileMenuBtn.style.display = 'flex';
+    }
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const minSwipeDistance = 50;
+
+    mainContent.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    mainContent.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      this.handleSwipe(touchEndX - touchStartX, minSwipeDistance);
+    }, { passive: true });
+
+    // Panel indicator clicks
+    panelIndicator?.querySelectorAll('.panel-dot').forEach((dot) => {
+      dot.addEventListener('click', () => {
+        const panel = dot.dataset.panel;
+        this.switchMobilePanel(panel);
+      });
+    });
+
+    // Mobile menu button
+    mobileMenuBtn?.addEventListener('click', () => {
+      this.openMobileSheet();
+    });
+
+    // Initialize mobile sheet
+    this.initMobileSheet();
+  }
+
+  initMobileSheet() {
+    const mobileSheet = document.getElementById('mobile-sheet');
+    const mobileSheetOverlay = document.getElementById('mobile-sheet-overlay');
+    const cancelBtn = mobileSheet?.querySelector('.mobile-sheet-cancel');
+
+    // Sheet actions
+    mobileSheet?.querySelectorAll('.mobile-sheet-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.action;
+        this.handleMobileSheetAction(action);
+        this.closeMobileSheet();
+      });
+    });
+
+    // Cancel button
+    cancelBtn?.addEventListener('click', () => {
+      this.closeMobileSheet();
+    });
+
+    // Overlay click
+    mobileSheetOverlay?.addEventListener('click', () => {
+      this.closeMobileSheet();
+    });
+  }
+
+  openMobileSheet() {
+    const mobileSheet = document.getElementById('mobile-sheet');
+    const mobileSheetOverlay = document.getElementById('mobile-sheet-overlay');
+    
+    // Update sync button state
+    const syncBtn = mobileSheet?.querySelector('[data-action="sync"]');
+    if (syncBtn) {
+      const icon = syncBtn.querySelector('i');
+      if (this.scrollSyncEnabled) {
+        icon.className = 'ph-fill ph-link';
+        syncBtn.style.opacity = '1';
+      } else {
+        icon.className = 'ph ph-link';
+        syncBtn.style.opacity = '0.6';
+      }
+    }
+
+    mobileSheet?.classList.add('open');
+    mobileSheetOverlay?.classList.add('visible');
+  }
+
+  closeMobileSheet() {
+    const mobileSheet = document.getElementById('mobile-sheet');
+    const mobileSheetOverlay = document.getElementById('mobile-sheet-overlay');
+    
+    mobileSheet?.classList.remove('open');
+    mobileSheetOverlay?.classList.remove('visible');
+  }
+
+  handleMobileSheetAction(action) {
+    switch (action) {
+      case 'export':
+        this.generatePDF();
+        break;
+      case 'history':
+        this.openHistoryPanel();
+        break;
+      case 'theme':
+        this.switchTheme();
+        break;
+      case 'focus':
+        this.toggleFocusMode();
+        break;
+      case 'sync':
+        this.toggleScrollSync();
+        break;
+    }
+  }
+
+  toggleCompactMode() {
+    this.compactMode = !this.compactMode;
+    localStorage.setItem('pdf-compact-mode', this.compactMode);
+    this.updateCompactModeUI();
+    
+    const status = this.compactMode ? 'enabled' : 'disabled';
+    this.toast.info(`Compact PDF mode ${status}`);
+  }
+
+  updateCompactModeUI() {
+    const compactModeBtn = document.getElementById('compact-mode-btn');
+    if (compactModeBtn) {
+      const icon = compactModeBtn.querySelector('i');
+      if (this.compactMode) {
+        icon.className = 'ph-fill ph-text-t';
+        compactModeBtn.style.background = 'var(--accent-gradient)';
+        compactModeBtn.style.color = '#ffffff';
+        compactModeBtn.style.borderColor = 'transparent';
+      } else {
+        icon.className = 'ph ph-text-t';
+        compactModeBtn.style.background = '';
+        compactModeBtn.style.color = '';
+        compactModeBtn.style.borderColor = '';
+      }
+    }
+  }
+
+  toggleScrollSync() {
+    this.scrollSyncEnabled = !this.scrollSyncEnabled;
+    localStorage.setItem('scroll-sync-enabled', this.scrollSyncEnabled);
+    this.updateScrollSyncUI();
+    
+    const status = this.scrollSyncEnabled ? 'enabled' : 'disabled';
+    this.toast.info(`Scroll sync ${status}`);
+  }
+
+  updateScrollSyncUI() {
+    const scrollSyncBtn = document.getElementById('scroll-sync-btn');
+    if (scrollSyncBtn) {
+      const icon = scrollSyncBtn.querySelector('i');
+      if (this.scrollSyncEnabled) {
+        icon.className = 'ph-fill ph-link';
+        scrollSyncBtn.style.opacity = '1';
+      } else {
+        icon.className = 'ph ph-link';
+        scrollSyncBtn.style.opacity = '0.5';
+      }
+    }
+  }
+
+  initScrollSync() {
+    const mdInput = document.getElementById('md-input');
+    const previewPanel = document.getElementById('preview-panel');
+    
+    if (!mdInput || !previewPanel) return;
+    
+    let isScrolling = false;
+    let scrollTimeout;
+    
+    // Map editor lines to preview elements
+    const getLineMap = () => {
+      const lines = mdInput.value.split('\n');
+      const map = [];
+      let lineNumber = 0;
+      
+      previewPanel.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, pre').forEach((el, index) => {
+        // Find corresponding line in editor based on element type
+        for (let i = lineNumber; i < lines.length; i++) {
+          const line = lines[i];
+          if ((el.tagName.match(/^H[1-6]$/) && line.startsWith('#')) ||
+              (el.tagName === 'P' && line.trim() && !line.startsWith('#') && !line.startsWith('```') && !line.startsWith('-') && !line.startsWith('*')) ||
+              (el.tagName === 'LI' && (line.trim().startsWith('-') || line.trim().startsWith('*'))) ||
+              (el.tagName === 'PRE' && line.startsWith('```'))) {
+            map.push({ element: el, line: i });
+            lineNumber = i + 1;
+            break;
+          }
+        }
+      });
+      
+      return map;
+    };
+    
+    // Calculate editor scroll percentage and map to preview
+    const syncEditorToPreview = () => {
+      if (!this.scrollSyncEnabled || isScrolling) return;
+      
+      isScrolling = true;
+      clearTimeout(scrollTimeout);
+      
+      const editorScrollPercent = mdInput.scrollTop / (mdInput.scrollHeight - mdInput.clientHeight);
+      const previewScrollTarget = editorScrollPercent * (previewPanel.scrollHeight - previewPanel.clientHeight);
+      
+      previewPanel.scrollTop = previewScrollTarget;
+      
+      scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+      }, 100);
+    };
+    
+    // Debounced scroll handler
+    let debounceTimer;
+    mdInput.addEventListener('scroll', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(syncEditorToPreview, 50);
+    }, { passive: true });
+    
+    // Also sync on input/render
+    const originalRenderMarkdown = this.renderMarkdown.bind(this);
+    this.renderMarkdown = async () => {
+      await originalRenderMarkdown();
+      if (this.scrollSyncEnabled) {
+        setTimeout(syncEditorToPreview, 100);
+      }
+    };
+  }
+
+  handleSwipe(deltaX, threshold) {
+    // Left swipe (negative delta) shows preview
+    // Right swipe (positive delta) shows editor
+    if (Math.abs(deltaX) > threshold) {
+      if (deltaX < 0 && this.currentPanel === 'editor') {
+        this.switchMobilePanel('preview');
+      } else if (deltaX > 0 && this.currentPanel === 'preview') {
+        this.switchMobilePanel('editor');
+      }
+    }
+  }
+
+  switchMobilePanel(panel) {
+    if (this.currentPanel === panel) return;
+
+    const editorPanel = document.getElementById('editor-panel');
+    const previewPanel = document.getElementById('preview-panel');
+    const resizer = document.getElementById('resizer');
+    const dots = document.querySelectorAll('.panel-dot');
+
+    if (panel === 'editor') {
+      editorPanel.style.display = 'flex';
+      previewPanel.style.display = 'none';
+      resizer.style.display = 'none';
+      dots[0].classList.add('active');
+      dots[1].classList.remove('active');
+    } else {
+      editorPanel.style.display = 'none';
+      previewPanel.style.display = 'flex';
+      resizer.style.display = 'none';
+      dots[0].classList.remove('active');
+      dots[1].classList.add('active');
+      // Re-render preview to ensure it's up to date
+      this.renderMarkdown();
+    }
+
+    this.currentPanel = panel;
   }
 
   toggleFocusMode() {
@@ -373,7 +771,7 @@ class MarkdownToPDF {
       await this.wait(500);
 
       if (!this.validateContent(preview)) {
-        alert('Please add some markdown content before generating PDF.');
+        this.toast.error('Please add some markdown content before generating PDF.');
         return;
       }
 
@@ -388,7 +786,7 @@ class MarkdownToPDF {
       await this.generatePDFWithWorkerAPI(preparedElement);
     } catch (error) {
       console.error('PDF generation error:', error);
-      alert(`PDF generation failed: ${error?.message || 'Unknown error'}`);
+      this.toast.error(`PDF generation failed: ${error?.message || 'Unknown error'}`);
     } finally {
       this.resetLoadingState(btnText, btnLoading, generateBtn);
     }
@@ -567,9 +965,11 @@ class MarkdownToPDF {
 
   async generatePDFWithWorkerAPI(element) {
     const filename = this.getDynamicFilename();
-    // Simple, reliable options that actually work
+    // Adjust margins based on compact mode
+    const margin = this.compactMode ? 10 : 15;
+    
     const options = {
-      margin: 15,
+      margin: margin,
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
@@ -585,8 +985,24 @@ class MarkdownToPDF {
       },
     };
 
+    // Apply compact mode styles to element if enabled
+    if (this.compactMode) {
+      element.style.fontSize = '13px';
+      element.style.lineHeight = '1.5';
+      element.querySelectorAll('p, li').forEach(el => {
+        el.style.marginBottom = '0.5em';
+      });
+      element.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
+        el.style.marginTop = '1em';
+        el.style.marginBottom = '0.5em';
+      });
+    }
+
     // Use the simple, working approach
     await html2pdf().set(options).from(element).save();
+    
+    // Show success toast
+    this.toast.success(`PDF exported: ${filename}`);
   }
 
   getDynamicFilename() {
@@ -859,18 +1275,46 @@ Inline math: $E = mc^2$
     localStorage.setItem('markdown-content', entry.content);
     this.renderMarkdown();
     this.closeHistoryPanel();
+    this.toast.success('Document loaded from history');
   }
 
   deleteHistoryEntry(id) {
     this.historyManager.deleteEntry(id);
     this.renderHistoryList();
+    this.toast.info('Entry removed from history');
   }
 
   clearAllHistory() {
     if (confirm('Are you sure you want to clear all history? This cannot be undone.')) {
       this.historyManager.clearHistory();
       this.renderHistoryList();
+      this.toast.info('History cleared');
     }
+  }
+
+  updateDocumentStats(content) {
+    const statsEl = document.getElementById('doc-stats');
+    const statsContent = document.getElementById('stats-content');
+    
+    if (!content || content.trim().length === 0) {
+      statsEl.classList.remove('visible');
+      return;
+    }
+    
+    // Calculate word count (split by whitespace)
+    const words = content.trim().split(/\s+/).filter(word => word.length > 0).length;
+    
+    // Estimate reading time (200 words per minute)
+    const readingTime = Math.max(1, Math.ceil(words / 200));
+    
+    // Estimate PDF pages (rough estimate: ~500 words per A4 page)
+    const pages = Math.max(1, Math.ceil(words / 500));
+    
+    // Format numbers with commas
+    const formatNumber = (num) => num.toLocaleString();
+    
+    statsContent.textContent = `${formatNumber(words)} words · ${pages} page${pages > 1 ? 's' : ''} · ${readingTime} min`;
+    statsEl.classList.add('visible');
   }
 
   escapeHtml(text) {

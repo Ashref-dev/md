@@ -102,6 +102,20 @@
           >
             <i class="ph-fill ph-clock-counter-clockwise"></i>
           </button>
+          <button
+            id="compact-mode-btn"
+            class="action-btn"
+            title="Compact PDF Mode"
+          >
+            <i class="ph-fill ph-text-t"></i>
+          </button>
+          <button
+            id="scroll-sync-btn"
+            class="action-btn"
+            title="Toggle Scroll Sync"
+          >
+            <i class="ph-fill ph-link"></i>
+          </button>
           <button id="generate-btn" class="action-btn" title="Export to PDF">
             <span class="btn-text">
               <i class="ph-fill ph-file-pdf"></i>
@@ -133,6 +147,9 @@
             placeholder="Paste your Markdown here..."
             aria-label="Markdown input area"
           ></textarea>
+          <div id="doc-stats" class="doc-stats">
+            <span id="stats-content">0 words · 0 pages · 0 min</span>
+          </div>
         </div>
         <div class="resizer" id="resizer"></div>
         <div id="preview-panel" class="preview-section">
@@ -165,6 +182,51 @@
         <p>Last 100 documents are saved locally</p>
       </div>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Mobile Panel Indicator -->
+    <div id="panel-indicator" class="panel-indicator" style="display: none;">
+      <div class="panel-dot active" data-panel="editor"></div>
+      <div class="panel-dot" data-panel="preview"></div>
+    </div>
+
+    <!-- Mobile Bottom Sheet -->
+    <div id="mobile-sheet-overlay" class="mobile-sheet-overlay"></div>
+    <div id="mobile-sheet" class="mobile-sheet">
+      <div class="mobile-sheet-header">
+        <div class="mobile-sheet-handle"></div>
+      </div>
+      <div class="mobile-sheet-actions">
+        <button class="mobile-sheet-btn" data-action="export">
+          <i class="ph-fill ph-file-pdf"></i>
+          <span>Export PDF</span>
+        </button>
+        <button class="mobile-sheet-btn" data-action="history">
+          <i class="ph-fill ph-clock-counter-clockwise"></i>
+          <span>History</span>
+        </button>
+        <button class="mobile-sheet-btn" data-action="theme">
+          <i class="ph-fill ph-moon"></i>
+          <span>Toggle Theme</span>
+        </button>
+        <button class="mobile-sheet-btn" data-action="focus">
+          <i class="ph-fill ph-eye"></i>
+          <span>Focus Mode</span>
+        </button>
+        <button class="mobile-sheet-btn" data-action="sync">
+          <i class="ph-fill ph-link"></i>
+          <span>Scroll Sync</span>
+        </button>
+      </div>
+      <button class="mobile-sheet-cancel">Cancel</button>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-btn" class="mobile-menu-btn" style="display: none;">
+      <i class="ph-fill ph-dots-three-vertical"></i>
+    </button>
 
     <script src="app.js"></script>
   </body>
