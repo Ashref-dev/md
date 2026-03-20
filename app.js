@@ -372,6 +372,16 @@ class MarkdownToPDF {
       mobileMenuBtn.style.display = 'flex';
     }
 
+    // Initialize panel classes for animation
+    const editorPanel = document.getElementById('editor-panel');
+    const previewPanel = document.getElementById('preview-panel');
+    if (this.currentPanel === 'editor') {
+      editorPanel?.classList.add('active');
+      editorPanel?.classList.remove('hidden');
+      previewPanel?.classList.add('hidden');
+      previewPanel?.classList.remove('active');
+    }
+
     let touchStartX = 0;
     let touchEndX = 0;
     const minSwipeDistance = 50;
@@ -614,14 +624,18 @@ class MarkdownToPDF {
     const dots = document.querySelectorAll('.panel-dot');
 
     if (panel === 'editor') {
-      editorPanel.style.display = 'flex';
-      previewPanel.style.display = 'none';
+      editorPanel.classList.add('active');
+      editorPanel.classList.remove('hidden');
+      previewPanel.classList.add('hidden');
+      previewPanel.classList.remove('active');
       resizer.style.display = 'none';
       dots[0].classList.add('active');
       dots[1].classList.remove('active');
     } else {
-      editorPanel.style.display = 'none';
-      previewPanel.style.display = 'flex';
+      editorPanel.classList.add('hidden');
+      editorPanel.classList.remove('active');
+      previewPanel.classList.add('active');
+      previewPanel.classList.remove('hidden');
       resizer.style.display = 'none';
       dots[0].classList.remove('active');
       dots[1].classList.add('active');
@@ -633,6 +647,12 @@ class MarkdownToPDF {
   }
 
   toggleFocusMode() {
+    // Skip focus mode on mobile/touch devices - panels already switchable via swipe
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      this.toast.info('Focus mode not available on mobile - use swipe to switch panels');
+      return;
+    }
+    
     document.body.classList.toggle('focus-mode');
     const previewPanel = document.getElementById('preview-panel');
     const resizer = document.getElementById('resizer');
